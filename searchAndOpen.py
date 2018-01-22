@@ -40,6 +40,35 @@ def searchFileForString(filename, string):
                 print('Encountered empty file: {}'.format(filename))
 
 
+def open_algorithm(found, programm):
+    _input = defInput()  # py 2/3 hack
+    yn = _input('open files? [y/n] to open [all/none]\n'
+                'alternatively enter [number] to open specific file\n')
+    if yn == 'y':
+        if len(found) > 3:
+            if not _input('Really sure to open {} files [y/n]\n'
+                          .format(len(found))) == 'y':
+                return
+        for script in found:
+            if script != __file__:
+                subprocess.call([r'{}'.format(programm),
+                                 r'{}'.format(script)])
+
+    elif yn == 'n':
+        pass
+
+    else:
+        try:
+            index = int(yn)
+            print('opening "{}"'.format(found[index]))
+            subprocess.call([r'{}'.format(programm),
+                             r'{}'.format(found[index])])
+        except (ValueError, IndexError) as e:
+            print('"{}" is not a valid index.'.format(yn))
+
+        open_algorithm(found, programm)
+
+
 def searchDirectoryForString(directory, string, extension='.py'):
     t = time.time()
     searched = 0
@@ -49,7 +78,8 @@ def searchDirectoryForString(directory, string, extension='.py'):
             if file.endswith(extension):
                 found = searchFileForString(os.path.join(root, file), string)
                 if found is not None:
-                    found_in.append(found)
+                    if not found[0].endswith('searchAndOpen.py'):
+                        found_in.append(found)
                 searched += 1
     print('Searched {} files for "{}", found {} matches in {:2.2f} seconds.'
           .format(searched, string, len(found_in), time.time() - t))
@@ -59,39 +89,18 @@ def searchDirectoryForString(directory, string, extension='.py'):
 def findAndOpen(directory, string, extension='.py', open_with='spyder'):
     found = searchDirectoryForString(directory, string, extension=extension)
 
-    _input = defInput()  # py 2/3 hack
     for i, script in enumerate(found):
         print('({}) {}'.format(i, script))
 
-    if len(found) != 0:
-        yn = _input('open files? [y/n] to open [all/none]\n'
-                    'alternatively enter [number] to open specific file\n')
-        if yn == 'y':
-            if len(found) > 3:
-                if not _input('Really sure to open {} files [y/n]\n'
-                              .format(len(found))) == 'y':
-                    return
-            for script in found:
-                if script != __file__:
-                    subprocess.call([r'{}'.format(open_with),
-                                     r'{}'.format(script)])
-
-        elif yn == 'n':
-            pass
-
-        else:
-            try:
-                index = int(yn)
-                print('opening "{}"'.format(found[index]))
-                subprocess.call([r'{}'.format(open_with),
-                                 r'{}'.format(found[index])])
-            except ValueError as e:
-                raise Exception('"{}" is not a valid index.'.format(yn))
+    if len(found) == 0:
+        return
+    open_algorithm(found, open_with)
 
 
 def main():
-    findAndOpen('.', 'import')
-
+    findAndOpen('C://Skibbe.N/src/comet', 'comet_misc', open_with='C:/Software/WinPython-64bit-3.6.1.0Qt5/spyder.exe')
+    # findAndOpen('C://', 'shuffle')  # > 10 min
+#    findAndOpen('C://Skibbe.N/src/empymod_src_testing', 'bipole', open_with='C:/Software/WinPython-64bit-3.6.1.0Qt5/spyder.exe')
 
 if __name__ == '__main__':
     main()
