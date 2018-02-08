@@ -24,9 +24,8 @@ def searchFileForString(filename, string):
                 s = mmap.mmap(infile.fileno(), 0, access=mmap.ACCESS_READ)
                 if re.search(r'{}'.format(string), s):
                     return filename
-        except ValueError as e:
-            if not filename.endswith('__init__.py'):
-                print('Encountered empty file: {}'.format(filename))
+        except ValueError:
+            return None
 
     else:  # python version > 3.0
         try:
@@ -35,9 +34,8 @@ def searchFileForString(filename, string):
                               0, access=mmap.ACCESS_READ) as s:
                 if re.search(br'%b' % (string.encode()), s):
                     return filename
-        except ValueError as e:
-            if not filename.endswith('__init__.py'):
-                print('Encountered empty file: {}'.format(filename))
+        except ValueError:
+            return None
 
 
 def open_algorithm(found, programm):
@@ -49,10 +47,12 @@ def open_algorithm(found, programm):
             if not _input('Really sure to open {} files [y/n]\n'
                           .format(len(found))) == 'y':
                 return
+
+        call = [r'{}'.format(programm)]
         for script in found:
             if script != __file__:
-                subprocess.call([r'{}'.format(programm),
-                                 r'{}'.format(script)])
+                call.append(r'{}'.format(script))
+        subprocess.call(call)
 
     elif yn == 'n':
         pass
@@ -63,7 +63,7 @@ def open_algorithm(found, programm):
             print('opening "{}"'.format(found[index]))
             subprocess.call([r'{}'.format(programm),
                              r'{}'.format(found[index])])
-        except (ValueError, IndexError) as e:
+        except (ValueError, IndexError):
             print('"{}" is not a valid index.'.format(yn))
 
         open_algorithm(found, programm)
@@ -98,7 +98,9 @@ def findAndOpen(directory, string, extension='.py', open_with='spyder'):
 
 
 def main():
-    findAndOpen('C://Skibbe.N/src/comet', 'comet_misc', open_with='C:/Software/WinPython-64bit-3.6.1.0Qt5/spyder.exe')
+#    findAndOpen('/home61/skibbe/comet', 'config', open_with='spyder')
+    findAndOpen('/home61/skibbe/custEM/samples', 'solve_main_problem',
+                open_with='spyder3')
     # findAndOpen('C://', 'shuffle')  # > 10 min
 #    findAndOpen('C://Skibbe.N/src/empymod_src_testing', 'bipole', open_with='C:/Software/WinPython-64bit-3.6.1.0Qt5/spyder.exe')
 
